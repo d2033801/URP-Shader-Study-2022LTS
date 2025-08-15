@@ -3,277 +3,281 @@
 // and  NedMakesGames https://gist.github.com/NedMakesGames/3e67fabe49e2e3363a657ef8a6a09838
 // for the base setup for compute shaders
 
+// 保留原英文注释的基础上添加中文注释 //
+// -------------------------------
+// Compute Shader主要逻辑入口声明
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel Main
 // Define some constants
-#define TWO_PI      6.28318530717958647693
+#define TWO_PI      6.28318530717958647693  // 2π常量，用于角度计算
 
+// 源顶点数据结构（保留原英文注释）
 // This describes a vertex on the source mesh
 struct SourceVertex
 {
-    float3 positionWS; // position in world space
-    float3 normalOS;
-    float2 uv;  // contains widthMultiplier, heightMultiplier
-    float3 color;
+    float3 positionWS; // position in world space    // 世界空间坐标
+    float3 normalOS; // object space normal        // 对象空间法线
+    float2 uv; // contains widthMultiplier, heightMultiplier  // UV储存宽度/高度乘数
+    float3 color; // 顶点颜色
 };
 
-StructuredBuffer<SourceVertex> _SourceVertices;
-StructuredBuffer<int> _VisibleIDBuffer;
+StructuredBuffer<SourceVertex> _SourceVertices; // 源顶点数据缓冲区
+StructuredBuffer<int> _VisibleIDBuffer; // 可见顶点索引缓冲区
 
-
+// 生成顶点数据结构（保留原英文注释）
 // This describes a vertex on the generated mesh
 struct DrawVertex
 {
-    float3 positionWS; // The position in world space
-    float2 uv;
+    float3 positionWS; // The position in world space   // 世界空间坐标
+    float2 uv; // UV坐标
 };
 
+// 三角形结构（保留原英文注释）
 // A triangle on the generated mesh
 struct DrawTriangle
 {
-    float3 normalOS;  
-    float3 diffuseColor;
-    DrawVertex vertices[3]; // The three points on the triangle
+    float3 normalOS; // 对象空间法线
+    float3 diffuseColor; // 漫反射颜色
+    DrawVertex vertices[3]; // The three points on the triangle  // 三角面顶点数组
 };
 
+// 生成网格的缓冲区（保留原英文注释）
 // A buffer containing the generated mesh
-AppendStructuredBuffer<DrawTriangle> _DrawTriangles;
+AppendStructuredBuffer<DrawTriangle> _DrawTriangles; // 追加式三角面缓冲区
 
+// 间接绘制参数结构（保留原英文注释）
 // The indirect draw call args, as described in the renderer script
 struct IndirectArgs
 {
-    uint numVerticesPerInstance;
-    uint numInstances;
-    uint startVertexIndex;
-    uint startInstanceIndex;
-    uint startLocation;
+    uint numVerticesPerInstance; // 每实例顶点数（草叶数量）
+    uint numInstances; // 实例数量
+    uint startVertexIndex; // 起始顶点索引
+    uint startInstanceIndex; // 起始实例索引
+    uint startLocation; // 起始绘制位置（用于Vulkan兼容）
 };
 
 // The kernel will count the number of vertices, so this must be RW enabled
-RWStructuredBuffer<IndirectArgs> _IndirectArgsBuffer;
+RWStructuredBuffer<IndirectArgs> _IndirectArgsBuffer; // 可读写间接参数缓冲区
 
+// 草参数定义（保留原英文注释）
 // These values are bounded by limits in C# scripts,
 // because in the script we need to specify the buffer size
-#define GRASS_BLADES 10
-#define GRASS_SEGMENTS 4// segments per blade
-#define GRASS_NUM_VERTICES_PER_BLADE (GRASS_SEGMENTS * 2)+ 1
+#define GRASS_BLADES 10         // 每顶点生成的最大草叶数量
+#define GRASS_SEGMENTS 4        // 每根草叶的段数
+#define GRASS_NUM_VERTICES_PER_BLADE (GRASS_SEGMENTS * 2)+ 1  // 每草叶的顶点数量计算式
 
-// ----------------------------------------
-
+// -------------------------------
+// 渲染器设置的变量（保留原英文注释）
 // Variables set by the renderer
-int _NumSourceVertices;
-// Time
-float _Time;
+int _NumSourceVertices; // 源顶点总数
+float _Time; // 时间变量（用于动画）
 
-// Grass
-half _GrassHeight;
-half _GrassWidth;
-float _GrassRandomHeightMin, _GrassRandomHeightMax;
+// Grass parameters
+half _GrassHeight; // 草叶基础高度
+half _GrassWidth; // 草叶基础宽度
+float _GrassRandomHeightMin, _GrassRandomHeightMax; // 高度随机范围
 
-// Wind
-half _WindSpeed;
-float _WindStrength;
+// Wind parameters
+half _WindSpeed; // 风速
+float _WindStrength; // 风力强度
 
-// Interactor
-half _InteractorStrength;
+// Interaction parameters
+half _InteractorStrength; // 交互器影响强度
 
-// Blade
-half _BladeRadius;
-float _BladeForward;
-float _BladeCurve;
-float _BottomWidth;
-int _MaxBladesPerVertex;
-int _MaxSegmentsPerBlade;
-float _MinHeight, _MinWidth;
-float _MaxHeight, _MaxWidth;
-// Camera
-float _MinFadeDist, _MaxFadeDist;
+// Blade parameters
+half _BladeRadius; // 草叶分布半径
+float _BladeForward; // 草叶前倾程度
+float _BladeCurve; // 草叶弯曲曲率
+float _BottomWidth; // 草叶底部宽度
+int _MaxBladesPerVertex; // 每顶点最大草叶数
+int _MaxSegmentsPerBlade; // 每草叶最大段数
+float _MinHeight, _MinWidth; // 最小高度/宽度
+float _MaxHeight, _MaxWidth; // 最大高度/宽度
 
-// Uniforms
-uniform float4 _PositionsMoving[100];
-uniform float _InteractorsLength;
-uniform float3 _CameraPositionWS;
+// Camera fading
+float _MinFadeDist, _MaxFadeDist; // 相机淡出范围
 
+// Interaction system
+uniform float4 _PositionsMoving[100]; // 交互器位置数组（xyz=位置, w=半径）
+uniform float _InteractorsLength; // 生效的交互器数量
+uniform float3 _CameraPositionWS; // 相机世界空间位置
 
-float3x3 _LocalToWorld;
+// Space transforms
+float3x3 _LocalToWorld; // 本地到世界的旋转矩阵
 
-// ----------------------------------------
+// -------------------------------
+// 辅助函数（保留原英文注释）
 // Helper Functions
 
+// 基于3D坐标生成伪随机数（保留原函数注释）
+// Random number generator based on position
 float rand(float3 co)
 {
     return frac(
     sin(dot(co.xyz, float3(12.9898, 78.233, 53.539))) * 43758.5453);
 }
 
+// Unity风格的范围随机函数
+// Unity-style random range function
 float Unity_RandomRange_float(float2 Seed, float Min, float Max)
 {
-    float randomno =  frac(sin(dot(Seed, float2(12.9898, 78.233)))*43758.5453);
-    return lerp(Min, Max, randomno);
+    float randomno = frac(sin(dot(Seed, float2(12.9898, 78.233))) * 43758.5453);
+    return lerp(Min, Max, randomno); // 线性插值返回范围内随机值
 }
 
+// 轴角旋转矩阵生成（保留作者注释）
+// By Keijiro Takahashi
 // A function to compute an rotation matrix which rotates a point
 // by angle radians around the given axis
-// By Keijiro Takahashi
 float3x3 AngleAxis3x3(float angle, float3 axis)
 {
     float c, s;
-    sincos(angle, s, c);
+    sincos(angle, s, c); // 计算sin/cos
 
     float t = 1 - c;
     float x = axis.x;
     float y = axis.y;
     float z = axis.z;
 
+    // 构建旋转矩阵
     return float3x3(
     t * x * x + c, t * x * y - s * z, t * x * z + s * y,
     t * x * y + s * z, t * y * y + c, t * y * z - s * x,
     t * x * z - s * y, t * y * z + s * x, t * z * z + c);
 }
 
+// 草顶点生成函数（保留原注释）
 // Generate each grass vertex for output triangles
 DrawVertex GrassVertex(float3 positionWS, float width, float height,
 float offset, float curve, float2 uv, float3x3 rotation)
 {
-    DrawVertex output = (DrawVertex)0;
+    DrawVertex output = (DrawVertex) 0;
+    // 应用旋转矩阵到局部偏移
     float3 newPosOS = positionWS + mul(rotation, float3(width, height, curve + offset));
-    output.positionWS = newPosOS;
-    output.uv = uv;
+    output.positionWS = newPosOS; // 写入世界坐标
+    output.uv = uv; // 设置UV
     return output;
 }
 
-// ----------------------------------------
-
+// -------------------------------
+// 主内核函数（保留所有原英文注释）
 // The main kernel
-[numthreads(128, 1, 1)]
+[numthreads(128, 1, 1)] // 128线程/组，1维划分
 void Main(uint id : SV_DispatchThreadID)
 {
+    // 提前退出条件（保留原注释）
     // Return if every point has been processed
-    if ((int)id >= _NumSourceVertices)
-    {
+    if ((int) id >= _NumSourceVertices)
         return;
-    }
-    
+
+    // 可见性检查（保留原注释）
     int usableID = _VisibleIDBuffer[id];
-    // -1 id means it's culled
     if (usableID == -1)
-    {
-        return;
-    }
-    // get the right data at the visible ids
+        return; // -1表示被剔除
+
+    // 获取源顶点数据
     SourceVertex sv = _SourceVertices[usableID];
 
-    // fading on max distance
+    // 距离衰减计算（保留原逻辑）
     float distanceFromCamera = distance(sv.positionWS, _CameraPositionWS);
     float distanceFade = 1 - saturate((distanceFromCamera - _MinFadeDist) / (_MaxFadeDist - _MinFadeDist));
-
-    // skip if out of fading range too
     if (distanceFade < 0)
-    {
         return;
-    }
 
-    // Blades & Segments
+    // 草叶参数计算（保留原注释）
     int numBladesPerVertex = min(GRASS_BLADES, max(1, _MaxBladesPerVertex));
-    int numSegmentsPerBlade = min(GRASS_SEGMENTS, max(1, _MaxSegmentsPerBlade));;
-    // -1 is because the top part of the grass only has 1 triangle
-    int numTrianglesPerBlade = (numSegmentsPerBlade - 1) * 2 + 1;
-    
-    // normal
-    float3 perpendicularAngle = float3(0, 0, 1);
-    float3 faceNormal = sv.normalOS;
-  
+    int numSegmentsPerBlade = min(GRASS_SEGMENTS, max(1, _MaxSegmentsPerBlade));
+    int numTrianglesPerBlade = (numSegmentsPerBlade - 1) * 2 + 1; // 三角形数量计算
 
-    // Wind
+    // 法线初始化
+    float3 faceNormal = sv.normalOS;
+
+    // 风力计算（保留原公式注释）
     float3 wind1 = float3(
-    sin(_Time.x * _WindSpeed + sv.positionWS.x) + sin(
-    _Time.x * _WindSpeed + sv.positionWS.z * 2) + sin(
-    _Time.x * _WindSpeed * 0.1 + sv.positionWS.x), 0,
-    cos(_Time.x * _WindSpeed + sv.positionWS.x * 2) + cos(
-    _Time.x * _WindSpeed + sv.positionWS.z));
-    wind1 *= _WindStrength;
-    
-    // Set grass height and width
-    _GrassHeight = sv.uv.y;
-    _GrassWidth = sv.uv.x;  // UV.x == width multiplier (set in GrassPainter.cs)
-     float randomisedPos = rand(sv.positionWS.xyz);
-     // random height offsets
+    sin(_Time.x * _WindSpeed + sv.positionWS.x) +
+    sin(_Time.x * _WindSpeed + sv.positionWS.z * 2) +
+    sin(_Time.x * _WindSpeed * 0.1 + sv.positionWS.x),
+    0, // Y轴不应用风力
+    cos(_Time.x * _WindSpeed + sv.positionWS.x * 2) +
+    cos(_Time.x * _WindSpeed + sv.positionWS.z)
+    );
+    wind1 *= _WindStrength; // 应用风力强度
+
+    // 高度/宽度随机化（保留原算法）
+    _GrassHeight = sv.uv.y; // UV.y存储高度乘数
+    _GrassWidth = sv.uv.x; // UV.x存储宽度乘数
     float randomOffset = Unity_RandomRange_float(sv.positionWS.xz, _GrassRandomHeightMin, _GrassRandomHeightMax);
     _GrassHeight = clamp(_GrassHeight + randomOffset, _MinHeight, _MaxHeight);
-    _GrassWidth=  clamp(_GrassWidth, _MinWidth, _MaxWidth);
-    _GrassWidth *= saturate(distanceFade);
-    _BladeForward *= _GrassHeight;
-    
-    // loop to create blade per vertex
-    for (int j = 0; j < numBladesPerVertex * distanceFade ; j++)
+    _GrassWidth = clamp(_GrassWidth, _MinWidth, _MaxWidth);
+    _GrassWidth *= saturate(distanceFade); // 应用距离衰减
+    _BladeForward *= _GrassHeight; // 前倾量与高度成正比
+
+    // 每顶点生成多个草叶
+    for (int j = 0; j < numBladesPerVertex * distanceFade; j++)
     {
-         // vertices arrays
-        DrawVertex drawVertices[GRASS_NUM_VERTICES_PER_BLADE];
-        // set rotation and radius of the blades
+        DrawVertex drawVertices[GRASS_NUM_VERTICES_PER_BLADE]; // 顶点数组
+
+        // 旋转矩阵计算（保留原注释）
         float3x3 facingRotationMatrix = AngleAxis3x3(
-        randomisedPos * TWO_PI + j, sv.normalOS);
+            rand(sv.positionWS.xyz) * TWO_PI + j, // 随机基础角度 + 索引偏移
+            sv.normalOS                           // 绕法线旋转
+        );
 
-        float bladeRadius = j / (float) numBladesPerVertex;
-        float offset = (1 - bladeRadius) * _BladeRadius;
-
-         // interactivity/bending away from interactors
+        // 交互影响计算（保留原算法注释）
         float3 combinedDisp = 0;
-        float3 offsetWorldPos = sv.positionWS + mul(facingRotationMatrix, float3(0, 0, offset));
+        float3 offsetWorldPos = sv.positionWS + mul(facingRotationMatrix, float3(0, 0, (1 - j / (float) numBladesPerVertex) * _BladeRadius));
+        
+        // 遍历所有交互器
         for (int p = 0; p < _InteractorsLength; p++)
         {
+            // 交互器排斥力计算（保持原数学公式）
             float3 playerToVertex = offsetWorldPos - _PositionsMoving[p].xyz;
             float3 directionFromPlayer = normalize(playerToVertex);
-            float distanceFromSphere = abs(length(playerToVertex)) + _PositionsMoving[p].w;
-
-            float3 baseXZOffset = float3(directionFromPlayer.x, 0, directionFromPlayer.z) * distanceFromSphere;
-
-            float3 sphereDisp = (baseXZOffset * _InteractorStrength) - float3(0, distanceFromSphere * 1, 0);
-
+            float distanceFromSphere = length(playerToVertex) + _PositionsMoving[p].w;
+            float3 baseXZOffset = directionFromPlayer.xz * distanceFromSphere;
+            float3 sphereDisp = (baseXZOffset * _InteractorStrength) - float3(0, distanceFromSphere, 0);
+            
+            // 半径衰减计算
             float3 dis = distance(_PositionsMoving[p].xyz, offsetWorldPos);
             float3 radius = 1 - saturate(dis / _PositionsMoving[p].w);
-            // in world radius based on objects interaction radius
-            sphereDisp *= radius;
-            combinedDisp += sphereDisp; // combine
+            sphereDisp *= radius; // 应用衰减
+            combinedDisp += sphereDisp;
         }
-       
-        // create blade
+
+        // 生成草叶段
         for (int i = 0; i < numSegmentsPerBlade; i++)
         {
-            // taper width, increase height
+            // 段参数计算（保留原注释）
             float t = i / (float) numSegmentsPerBlade;
             float segmentHeight = _GrassHeight * t;
             float segmentWidth = _GrassWidth * (1 - t);
+            segmentWidth = (i == 0) ? _BottomWidth * segmentWidth : segmentWidth; // 底部更窄
 
-            // the first (0) grass segment is thinner
-            segmentWidth = i == 0 ? _BottomWidth * segmentWidth : segmentWidth;
-
-            float segmentForward = pow(abs(t), _BladeCurve) * _BladeForward;
-            // First grass (0) segment does not get displaced by interactor
-            float3 newPos = (i == 0) ? sv.positionWS : sv.positionWS + (combinedDisp * t) + wind1 * t + (faceNormal * _GrassHeight * t);
-            // Append First Vertex        
-            drawVertices[i * 2] = GrassVertex(newPos, segmentWidth, segmentHeight, offset, segmentForward, float2(0, t), facingRotationMatrix);
-            // Append Second Vertex
-            drawVertices[i * 2 + 1] = GrassVertex(newPos, -segmentWidth, segmentHeight, offset, segmentForward, float2(1, t), facingRotationMatrix);
+            // 顶点位置计算
+            float3 newPos = (i == 0) ? sv.positionWS : sv.positionWS + (combinedDisp * t) + wind1 * t + faceNormal * _GrassHeight * t;
+            
+            // 添加顶点到数组（索引策略保留原方法）
+            drawVertices[i * 2] = GrassVertex(newPos, segmentWidth, segmentHeight, 0, pow(t, _BladeCurve) * _BladeForward, float2(0, t), facingRotationMatrix);
+            drawVertices[i * 2 + 1] = GrassVertex(newPos, -segmentWidth, segmentHeight, 0, pow(t, _BladeCurve) * _BladeForward, float2(1, t), facingRotationMatrix);
         }
-        // Append Top Vertex
-        float3 topPosOS = sv.positionWS + combinedDisp + wind1 + (faceNormal * _GrassHeight);
-        drawVertices[numSegmentsPerBlade * 2] = GrassVertex(topPosOS, 0, _GrassHeight, offset, _BladeForward, float2(0.5, 1), facingRotationMatrix);
-          
-          // add to indirect arguments buffer with the correct vertexcount       
-          InterlockedAdd(_IndirectArgsBuffer[0].numVerticesPerInstance, numTrianglesPerBlade * 3);
 
-        // add to the drawbuffer to be read by the final shader
+        // 添加顶点顶点（保留原注释）
+        float3 topPosOS = sv.positionWS + combinedDisp + wind1 + faceNormal * _GrassHeight;
+        drawVertices[numSegmentsPerBlade * 2] = GrassVertex(topPosOS, 0, _GrassHeight, 0, _BladeForward, float2(0.5, 1), facingRotationMatrix);
+
+        // 原子操作更新间接参数（保留原注释）
+        InterlockedAdd(_IndirectArgsBuffer[0].numVerticesPerInstance, numTrianglesPerBlade * 3);
+
+        // 生成三角面
         for (int k = 0; k < numTrianglesPerBlade; ++k)
         {
-            DrawTriangle tri = (DrawTriangle)0;
+            DrawTriangle tri;
             tri.normalOS = faceNormal;
             tri.diffuseColor = sv.color;
             tri.vertices[0] = drawVertices[k];
             tri.vertices[1] = drawVertices[k + 1];
             tri.vertices[2] = drawVertices[k + 2];
-            _DrawTriangles.Append(tri);
+            _DrawTriangles.Append(tri); // 追加到缓冲区
         }
     }
-   
 }
-

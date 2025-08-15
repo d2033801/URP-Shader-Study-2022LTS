@@ -151,11 +151,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75f2dcf080512a448bdc7e8066e531a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  autoUpdate: 0
+  autoUpdate: 1
   currentPresets: {fileID: 11400000, guid: cca9ee75026fa5f41b90499b6754595b, type: 2}
   grassData: []
-  m_InstantiatedMaterial: {fileID: 2100000, guid: ac6891035798fa84db08576a594e5776,
-    type: 2}
+  m_InstantiatedMaterial: {fileID: 0}
 --- !u!4 &148185416
 Transform:
   m_ObjectHideFlags: 0

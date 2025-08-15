@@ -47,7 +47,7 @@ MonoBehaviour:
   brushSize: 1.1
   brushFalloffSize: 0.8
   Flow: 0.1
-  density: 2.13
+  density: 6.64
   normalLimit: 1
   grassAmountToGenerate: 100000
   generationDensity: 1
