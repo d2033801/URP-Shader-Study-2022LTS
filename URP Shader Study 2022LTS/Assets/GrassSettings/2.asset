@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3541ce1182db704993ddcbc7716d3c6, type: 3}
-  m_Name: Grass Settings
+  m_Name: 2
   m_EditorClassIdentifier: 
   shaderToUse: {fileID: 7200000, guid: 2c8b70590672f9e41816c14fd1fdc64f, type: 3}
-  materialToUse: {fileID: 2100000, guid: ac6891035798fa84db08576a594e5776, type: 2}
+  materialToUse: {fileID: 2100000, guid: 7fb53dec9d683ef4a8e0331211c398d5, type: 2}
   grassRandomHeightMin: 0
   grassRandomHeightMax: 5
-  bladeRadius: 1
-  bladeForwardAmount: 0.452
+  bladeRadius: 0.394
+  bladeForwardAmount: 0.38
   bladeCurveAmount: 2
-  bottomWidth: 0.1
-  MinWidth: 0.174
+  bottomWidth: 0.227
+  MinWidth: 0.01
   MinHeight: 0.01
-  MaxWidth: 0.07
-  MaxHeight: 1
-  windSpeed: 1.58
-  windStrength: 0.19
-  allowedBladesPerVertex: 7
+  MaxWidth: 0.866
+  MaxHeight: 0.917
+  windSpeed: 2
+  windStrength: 0.05
+  allowedBladesPerVertex: 4
   allowedSegmentsPerBlade: 4
   affectStrength: 1
   topTint: {r: 1, g: 1, b: 1, a: 1}
-  bottomTint: {r: 0.08986764, g: 0.57232696, b: 0.0017996496, a: 1}
+  bottomTint: {r: 0, g: 0, b: 1, a: 1}
   drawBounds: 0
   minFadeDistance: 40
   maxDrawDistance: 125

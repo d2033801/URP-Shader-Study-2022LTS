@@ -23,7 +23,7 @@ public class GrassComputeScript : MonoBehaviour
     ShaderInteractor[] interactors;
 
     // base data lists
-    [SerializeField, HideInInspector]
+    [SerializeField]
     List<GrassData> grassData = new List<GrassData>();
 
     // list of all visible grass ids, rest are culled

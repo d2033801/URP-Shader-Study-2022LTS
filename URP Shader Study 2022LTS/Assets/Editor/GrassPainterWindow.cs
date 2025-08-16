@@ -117,17 +117,20 @@ public class GrassPainterWindow : EditorWindow
         {
             grassCompute = grassObject.GetComponent<GrassComputeScript>();
             grassCompute.currentPresets = (SO_GrassSettings)EditorGUILayout.ObjectField("Grass Settings Object", grassCompute.currentPresets, typeof(SO_GrassSettings), false);
-
+            grassData = grassCompute.SetGrassPaintedDataList;
 
 
             if (grassCompute.SetGrassPaintedDataList.Count > 0)
             {
-                grassData = grassCompute.SetGrassPaintedDataList;
+                
                 grassAmount = grassData.Count;
             }
             else
             {
-                grassData.Clear();
+
+                grassAmount = 0;
+                // grassData.Clear();
+               // grassData = grassCompute.SetGrassPaintedDataList;
             }
 
 
@@ -1001,10 +1004,13 @@ public class GrassPainterWindow : EditorWindow
             mousePos.x *= ppp;
             mousePos.z = 0;
 
+            //int mouseButtonType = 0;     //×ó¼ü
+            int mouseButtonType = 1;     //ÓÒ¼ü
+
             // ray for gizmo(disc)
             ray = scene.camera.ScreenPointToRay(mousePos);
             // undo system
-            if (e.type == EventType.MouseDown && e.button == 1)
+            if (e.type == EventType.MouseDown && e.button == mouseButtonType)
             {
                 e.Use();
                 switch (toolbarInt)
@@ -1030,7 +1036,7 @@ public class GrassPainterWindow : EditorWindow
 
                 }
             }
-            if (e.type == EventType.MouseDrag && e.button == 1)
+            if (e.type == EventType.MouseDrag && e.button == mouseButtonType)
             {
                 switch (toolbarInt)
                 {
@@ -1058,7 +1064,7 @@ public class GrassPainterWindow : EditorWindow
             }
 
             // on up
-            if (e.type == EventType.MouseUp && e.button == 1)
+            if (e.type == EventType.MouseUp && e.button == mouseButtonType)
             {
 
                 RebuildMesh();
