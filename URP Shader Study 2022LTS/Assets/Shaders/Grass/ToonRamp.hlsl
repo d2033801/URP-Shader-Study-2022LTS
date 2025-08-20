@@ -1,10 +1,11 @@
-void ToonShading_float(in float3 Normal, in float ToonRampSmoothness, in float3 ClipSpacePos, in float3 WorldPos, in float4 ToonRampTinting,
-in float ToonRampOffset, out float3 ToonRampOutput)
+﻿void ToonShading_float(in float3 Normal, in float ToonRampSmoothness, in float3 ClipSpacePos, in float3 WorldPos, in float4 ToonRampTinting,
+in float ToonRampOffset, out float3 ToonRampOutput, out float3 Direction)
 {
 
 	// set the shader graph node previews
 	#ifdef SHADERGRAPH_PREVIEW
 		ToonRampOutput = float3(0.5,0.5,0);
+		Direction = float3(0.5,0.5,0);
 	#else
 
 		// grab the shadow coordinates
@@ -29,7 +30,9 @@ in float ToonRampOffset, out float3 ToonRampOutput)
 		// multiply with shadows;
 		toonRamp *= light.shadowAttenuation;
 		// add in lights and extra tinting
-    ToonRampOutput = light.color * (light.shadowAttenuation + ToonRampTinting);
+		ToonRampOutput = light.color * (toonRamp + ToonRampTinting) ;
+		// output direction for rimlight
+		Direction = light.direction;
 	#endif
 
 }

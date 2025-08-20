@@ -19,10 +19,10 @@ void ShadowFactor_float(float3 WorldPos, in float4 ShadowColor, out float3 Shado
 		Light light = GetMainLight();
 #endif
 		// 解决了整体颜色随着阴影改变的问题,但同时导致用有色阴影会不够自然
-        // ShadowAtten = light.color * (light.shadowAttenuation + ShadowColor * (1 - light.shadowAttenuation));
+        ShadowAtten = light.color * (light.shadowAttenuation + ShadowColor * (1 - light.shadowAttenuation));
 		
 		// 用有色阴影会相对自然, 但是整体颜色会随着阴影改变
-		ShadowAtten = light.color * (light.shadowAttenuation + ShadowColor);
+		// ShadowAtten = light.color * (light.shadowAttenuation + ShadowColor);
 #endif
 
 }
