@@ -35,4 +35,4 @@ MonoBehaviour:
   minFadeDistance: 40
   maxDrawDistance: 300
   cullingTreeDepth: 4
-  castShadow: 0
+  castShadow: 2
