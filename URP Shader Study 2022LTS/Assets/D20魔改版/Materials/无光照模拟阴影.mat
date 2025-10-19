@@ -12,7 +12,9 @@ Material:
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _ADDITIONAL_LIGHTS_1
+  - _ADDITIONAL_LIGHT_SHADOWS
   m_InvalidKeywords: []
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
@@ -42,8 +44,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ADDITIONAL_LIGHTS_1: 0
-    - _ADDITIONAL_LIGHT_SHADOWS: 0
+    - _ADDITIONAL_LIGHTS_1: 1
+    - _ADDITIONAL_LIGHT_SHADOWS: 1
     - _Blend: 0
     - _BlendMult: 1
     - _BlendOff: 0
