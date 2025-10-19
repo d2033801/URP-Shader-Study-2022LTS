@@ -1,4 +1,4 @@
-void ShadowFactor_float(float3 WorldPos, in float4 ShadowColor, out float3 ShadowAtten)
+ï»¿void ShadowFactor_float(float3 WorldPos, in float4 ShadowColor, out float3 ShadowAtten)
 {
 	// set the shader graph node previews
 #ifdef SHADERGRAPH_PREVIEW
@@ -18,10 +18,11 @@ void ShadowFactor_float(float3 WorldPos, in float4 ShadowColor, out float3 Shado
 #else
 		Light light = GetMainLight();
 #endif
-		// ½â¾öÁËÕûÌåÑÕÉ«Ëæ×ÅÒõÓ°¸Ä±äµÄÎÊÌâ,µ«Í¬Ê±µ¼ÖÂÓÃÓĞÉ«ÒõÓ°»á²»¹»×ÔÈ»
+		// è§£å†³äº†æ•´ä½“é¢œè‰²éšç€é˜´å½±æ”¹å˜çš„é—®é¢˜,ä½†åŒæ—¶å¯¼è‡´ç”¨æœ‰è‰²é˜´å½±ä¼šä¸å¤Ÿè‡ªç„¶
+    
         ShadowAtten = light.color * (light.shadowAttenuation + ShadowColor * (1 - light.shadowAttenuation));
 		
-		// ÓÃÓĞÉ«ÒõÓ°»áÏà¶Ô×ÔÈ», µ«ÊÇÕûÌåÑÕÉ«»áËæ×ÅÒõÓ°¸Ä±ä
+		// ç”¨æœ‰è‰²é˜´å½±ä¼šç›¸å¯¹è‡ªç„¶, ä½†æ˜¯æ•´ä½“é¢œè‰²ä¼šéšç€é˜´å½±æ”¹å˜
 		// ShadowAtten = light.color * (light.shadowAttenuation + ShadowColor);
 #endif
 
